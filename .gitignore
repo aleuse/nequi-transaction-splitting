@@ -10,6 +10,7 @@ wheels/
 .venv
 
 data/raw/*
+!models/*.pkl
 
 # MLflow
 mlruns/
@@ -17,7 +18,7 @@ mlflow.db
 *.db
 
 # Artefactos de experimentos
-*.pkl
+
 *.joblib
 *.h5
 *.pth
