@@ -1,1 +1,1 @@
-# Scripts module for transaction splitting detection 
+# Scripts module for transaction splitting detection

@@ -1,6 +1,7 @@
 """
 FastAPI application for transaction splitting detection.
 """
+
 from datetime import datetime
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, BackgroundTasks
@@ -18,12 +19,9 @@ from .models import (
     SinglePredictionResponse,
     BatchPredictionResponse,
     HealthResponse,
-    ErrorResponse
+    ErrorResponse,
 )
-from .services import (
-    ModelService,
-    PredictionService
-)
+from .services import ModelService, PredictionService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -58,7 +56,7 @@ app = FastAPI(
     """,
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # CORS middleware
@@ -83,10 +81,7 @@ async def get_prediction_service() -> PredictionService:
         return prediction_service
     except Exception as e:
         logger.error(f"Failed to load models: {str(e)}")
-        raise HTTPException(
-            status_code=503,
-            detail=f"Models not available: {str(e)}"
-        )
+        raise HTTPException(status_code=503, detail=f"Models not available: {str(e)}")
 
 
 # Exception handlers
@@ -95,10 +90,7 @@ async def http_exception_handler(request, exc):
     """Handle HTTP exceptions."""
     return JSONResponse(
         status_code=exc.status_code,
-        content=ErrorResponse(
-            error=exc.detail,
-            timestamp=datetime.now()
-        ).model_dump()
+        content=ErrorResponse(error=exc.detail, timestamp=datetime.now()).model_dump(),
     )
 
 
@@ -109,10 +101,8 @@ async def general_exception_handler(request, exc):
     return JSONResponse(
         status_code=500,
         content=ErrorResponse(
-            error="Internal server error",
-            detail=str(exc),
-            timestamp=datetime.now()
-        ).model_dump()
+            error="Internal server error", detail=str(exc), timestamp=datetime.now()
+        ).model_dump(),
     )
 
 
@@ -124,7 +114,7 @@ async def health_check():
         status="healthy",
         model_loaded=model_service.is_loaded,
         version="1.0.0",
-        timestamp=datetime.now()
+        timestamp=datetime.now(),
     )
 
 
@@ -133,26 +123,26 @@ async def health_check():
 async def predict_single_transaction(
     transaction: TransactionRecord,
     config: Optional[PredictionConfig] = None,
-    service: PredictionService = Depends(get_prediction_service)
+    service: PredictionService = Depends(get_prediction_service),
 ):
     """
     Predecir fraccionamiento para una transacción individual.
-    
+
     Este endpoint toma una sola transacción y busca patrones de fraccionamiento
     considerando el historial de transacciones similares del usuario.
     """
     try:
         if config is None:
             config = PredictionConfig()
-        
+
         predictions, metadata = service.predict_from_records([transaction], config)
-        
+
         return SinglePredictionResponse(
             message="Prediction completed successfully",
             candidate_groups_found=metadata["total_candidate_groups"],
-            predictions=predictions
+            predictions=predictions,
         )
-        
+
     except Exception as e:
         logger.error(f"Error in single prediction: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -162,29 +152,29 @@ async def predict_single_transaction(
 async def predict_batch_transactions(
     batch: TransactionBatch,
     config: Optional[PredictionConfig] = None,
-    service: PredictionService = Depends(get_prediction_service)
+    service: PredictionService = Depends(get_prediction_service),
 ):
     """
     Predecir fraccionamiento para un lote de transacciones.
-    
+
     Este endpoint procesa múltiples transacciones y busca patrones de
     fraccionamiento entre ellas, útil para análisis de comportamiento.
     """
     try:
         if config is None:
             config = PredictionConfig()
-        
+
         predictions, metadata = service.predict_from_records(batch.transactions, config)
-        
+
         return BatchPredictionResponse(
             message="Batch prediction completed successfully",
             total_transactions_processed=metadata["total_transactions_processed"],
             candidate_groups_found=metadata["total_candidate_groups"],
             alerts_count=metadata["alerts_count"],
             alert_rate=metadata["alert_rate"],
-            predictions=predictions
+            predictions=predictions,
         )
-        
+
     except Exception as e:
         logger.error(f"Error in batch prediction: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -196,57 +186,57 @@ async def predict_from_file(
     threshold_percentile: float = 95,
     include_scores: bool = True,
     alerts_only: bool = False,
-    service: PredictionService = Depends(get_prediction_service)
+    service: PredictionService = Depends(get_prediction_service),
 ):
     """
     Predecir fraccionamiento desde archivo cargado.
-    
+
     Soporta archivos en formato:
     * CSV (.csv)
     * Excel (.xlsx, .xls)
     * Parquet (.parquet)
-    
+
     El archivo debe contener las columnas requeridas:
     user_id, merchant_id, transaction_date, transaction_amount, transaction_type
     """
     try:
         # Validate file format
-        allowed_extensions = {'.csv', '.xlsx', '.xls', '.parquet'}
-        file_extension = '.' + file.filename.split('.')[-1].lower()
-        
+        allowed_extensions = {".csv", ".xlsx", ".xls", ".parquet"}
+        file_extension = "." + file.filename.split(".")[-1].lower()
+
         if file_extension not in allowed_extensions:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unsupported file format: {file_extension}. "
-                       f"Allowed: {', '.join(allowed_extensions)}"
+                f"Allowed: {', '.join(allowed_extensions)}",
             )
-        
+
         # Read file content
         file_content = await file.read()
-        
+
         if len(file_content) == 0:
             raise HTTPException(status_code=400, detail="Empty file")
-        
+
         # Create config
         config = PredictionConfig(
             threshold_percentile=threshold_percentile,
             include_scores=include_scores,
-            alerts_only=alerts_only
+            alerts_only=alerts_only,
         )
-        
+
         # Make predictions
         predictions, metadata = service.predict_from_file(
             file_content, file.filename, config
         )
-        
+
         return FileUploadResponse(
             message=f"File '{file.filename}' processed successfully",
             total_candidate_groups=metadata["total_candidate_groups"],
             alerts_count=metadata["alerts_count"],
             alert_rate=metadata["alert_rate"],
-            predictions=predictions
+            predictions=predictions,
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -259,22 +249,25 @@ async def predict_from_file(
 async def load_models(model_dir: Optional[str] = None):
     """
     Cargar modelos desde directorio específico.
-    
+
     Útil para cargar diferentes versiones de modelos o después de actualizaciones.
     """
     try:
         global model_service, prediction_service
-        
+
         if model_dir:
             model_service = ModelService(model_dir)
         else:
             model_service = ModelService()
-        
+
         model_service.load_models()
         prediction_service = PredictionService(model_service)
-        
-        return {"message": "Models loaded successfully", "model_dir": model_dir or "default"}
-        
+
+        return {
+            "message": "Models loaded successfully",
+            "model_dir": model_dir or "default",
+        }
+
     except Exception as e:
         logger.error(f"Error loading models: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to load models: {str(e)}")
@@ -287,8 +280,10 @@ async def get_model_status():
     """
     return {
         "loaded": model_service.is_loaded,
-        "model_dir": str(model_service.model_dir) if model_service.model_dir else "default",
-        "timestamp": datetime.now()
+        "model_dir": str(model_service.model_dir)
+        if model_service.model_dir
+        else "default",
+        "timestamp": datetime.now(),
     }
 
 
@@ -297,18 +292,18 @@ async def get_model_status():
 async def get_analytics_stats():
     """
     Obtener estadísticas de uso de la API.
-    
+
     (En una implementación real, esto vendría de una base de datos)
     """
     return {
         "message": "Analytics endpoint - implement with database for production",
         "endpoints": {
             "/predict/single": "Single transaction predictions",
-            "/predict/batch": "Batch transaction predictions", 
-            "/predict/upload": "File upload predictions"
+            "/predict/batch": "Batch transaction predictions",
+            "/predict/upload": "File upload predictions",
         },
         "supported_formats": ["CSV", "Excel", "Parquet"],
-        "timestamp": datetime.now()
+        "timestamp": datetime.now(),
     }
 
 
@@ -334,4 +329,5 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)

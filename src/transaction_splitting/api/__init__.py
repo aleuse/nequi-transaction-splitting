@@ -1,1 +1,1 @@
-# API module for transaction splitting detection 
+# API module for transaction splitting detection

@@ -1,6 +1,7 @@
 """
 Configuration file for transaction splitting detection project.
 """
+
 import os
 from pathlib import Path
 
@@ -35,25 +36,15 @@ NUMERICAL_FEATURES = [
     "time_span_minutes",
     "amount_coeff_of_variation",
     "amount_entropy",
-    "avg_time_delta_minutes"
+    "avg_time_delta_minutes",
 ]
 
 # Default model parameters
-DEFAULT_IF_PARAMS = {
-    "contamination": 0.02,
-    "n_estimators": 300,
-    "random_state": 42
-}
+DEFAULT_IF_PARAMS = {"contamination": 0.02, "n_estimators": 300, "random_state": 42}
 
-DEFAULT_DBSCAN_PARAMS = {
-    "eps": 0.9,
-    "min_samples": 15
-}
+DEFAULT_DBSCAN_PARAMS = {"eps": 0.9, "min_samples": 15}
 
 # MLflow configuration
 MLFLOW_EXPERIMENT_NAME = "transaction-splitting-detection"
 ALERT_THRESHOLD_PERCENTILE = 95
-ENSEMBLE_WEIGHTS = {
-    "isolation_forest": 0.7,
-    "dbscan": 0.3
-} 
+ENSEMBLE_WEIGHTS = {"isolation_forest": 0.7, "dbscan": 0.3}
