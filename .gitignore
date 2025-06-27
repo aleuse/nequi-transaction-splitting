@@ -10,3 +10,44 @@ wheels/
 .venv
 
 data/raw/*
+
+# MLflow
+mlruns/
+mlflow.db
+*.db
+
+# Artefactos de experimentos
+*.pkl
+*.joblib
+*.h5
+*.pth
+*.onnx
+
+# Gráficos temporales
+ensemble_score_scatter.png
+*.png
+*.jpg
+*.pdf
+high_risk_candidate_groups.parquet
+
+# Logs
+*.log
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Data files
+data/raw/
+data/processed/
+*.csv
+*.parquet
