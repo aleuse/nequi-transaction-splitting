@@ -9,6 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+.ruff_cache/
+
 data/raw/*
 !models/*.pkl
 
