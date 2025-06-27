@@ -15,7 +15,7 @@ Este proyecto implementa un sistema completo para la detección automática de f
 - **MLflow Integration**: Seguimiento de experimentos y gestión de modelos
 - **Configuración Flexible**: Parámetros personalizables para diferentes casos de uso
 
-## Arquitectura del Sistema
+## Estructura del Sistema
 
 ```
 transaction-splitting/
@@ -45,6 +45,9 @@ transaction-splitting/
 │   └── 2_modelado.ipynb               # Desarrollo de modelos
 └── mlruns/                            # Experimentos MLflow
 ```
+## Arquitectura Propuesta
+
+![arquitectura](./Transactional_Splitting_Architecture.png)
 
 ##  Instalación Rápida
 
@@ -412,3 +415,4 @@ EXPOSE 8000
 
 CMD ["uvicorn", "src.transaction_splitting.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
+
